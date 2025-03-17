@@ -12,6 +12,6 @@ struct Notification: Identifiable, Codable {
     let senderId: String
     let type: String
     let timestamp: Timestamp
-    var isAccepted: Bool
+//    var isAccepted: Bool
     var user: User?
 }

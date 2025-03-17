@@ -35,6 +35,8 @@ struct NotificationsView: View {
     
     @State private var selectedFilter: NotificationsType = .invites
     @StateObject var viewModel = NotificationsViewModel()
+    @State private var showInvite = false
+    @EnvironmentObject var mapViewModel: MapAnnotationsViewModel
     let user: User
     
     var body: some View {
@@ -75,6 +77,7 @@ struct NotificationsView: View {
         .accentColor(.black)
         .onAppear {
             viewModel.loadFriendRequests(for: user.id)
+            Task { try await viewModel.loadInvites() }
         }
         .toolbar(.hidden, for: .tabBar)
     }
@@ -155,41 +158,58 @@ extension NotificationsView {
     var eventInviteView: some View {
         ScrollView {
             LazyVStack {
-                
-                ForEach(0...20, id: \.self) { item in
-                    HStack {
-                        NavigationLink {
-                            GuestUserProfileView(user: user)
-                        } label: {
-                            HStack {
-                                Image(systemName: "person")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .clipShape(Circle())
-                                    .frame(width: 40, height: 40)
-                                
-                                Group {
-                                    Text("adamsherif_").fontWeight(.semibold) +
-                                    Text(" invited you to an event!") +
-                                    Text(" 2d").foregroundStyle(.gray)
+                ForEach(viewModel.invitedEvents) { event in
+                    if let user = event.user {
+                        HStack {
+                            NavigationLink {
+                                GuestUserProfileView(user: user)
+                            } label: {
+                                HStack {
+                                    if user.profileImageUrl != "" {
+                                        KFImage(URL(string: user.profileImageUrl))
+                                            .resizable()
+                                            .scaledToFill()
+                                            .clipShape(Circle())
+                                            .frame(width: 40, height: 40)
+                                    } else {
+                                        ZStack {
+                                            Circle()
+                                                .frame(width: 40, height: 40)
+                                            
+                                            Image(systemName: "person")
+                                                .foregroundStyle(.white)
+                                                .imageScale(.small)
+                                            
+                                        }
+                                    }
+                                    
+                                    Group {
+                                        Text("\(user.username)").fontWeight(.semibold) +
+                                        Text(" invited you to an event!") +
+                                        Text(" 2d").foregroundStyle(.gray)
+                                    }
+                                    .frame(width: 200)
+                                    .foregroundStyle(.black)
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.leading)
                                 }
-                                .frame(width: 200)
-                                .foregroundStyle(.black)
-                                .font(.subheadline)
-                                .multilineTextAlignment(.leading)
+                            }
+                            
+                            Spacer()
+                            
+                            Button {
+                                showInvite.toggle()
+                            } label: {
+                                Text("\(event.emoji)")
+                                    .font(.title)
+                            }
+                            .sheet(isPresented: $showInvite) {
+                                EventView(user: user, event: event)
+                                    .presentationDetents([.fraction(0.5)])
                             }
                         }
-                        
-                        Spacer()
-                        
-                        NavigationLink {
-                            
-                        } label: {
-                            Text("🍴")
-                                .font(.title)
-                        }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                 }
             }
         }

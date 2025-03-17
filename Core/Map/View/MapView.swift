@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import Kingfisher
 
 enum MapPinType {
     case user(User)
@@ -23,15 +24,15 @@ struct MapView: View {
     )
     
     @StateObject var viewModel = MapAnnotationsViewModel()
+    @ObservedObject var manager = LocationManager.shared
     
     @State private var selectedPin: MapPinItem?
-    
     @State private var showTutorialSheet = false
     
     private var allPins: [MapPinItem] {
         
         let userPins =
-        DeveloperPreview.users.map { user in
+        viewModel.users.map { user in
             MapPinItem(
                 id: user.id,
                 coordinate: CLLocationCoordinate2D(
@@ -89,7 +90,6 @@ struct MapView: View {
                     case .event(let event):
                         if let owner = event.user {
                             EventView(user: owner, event: event)
-                                .environmentObject(viewModel)
                                 .presentationDetents([.fraction(0.5)])
                         }
                     }
@@ -116,6 +116,7 @@ struct MapView: View {
                         
                         NavigationLink {
                             NotificationsView(user: user)
+                                .environmentObject(viewModel)
                         } label: {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "bell")
@@ -124,8 +125,6 @@ struct MapView: View {
                                 Circle()
                                     .frame(width: 15, height: 15)
                                     .foregroundColor(.purple)
-                                
-                                
                             }
                                 
                         }
@@ -148,7 +147,16 @@ struct MapView: View {
                 .padding(.horizontal)
             }
             .onAppear {
-                Task { try await viewModel.fetchUserEvents() }
+                Task {
+                    try await viewModel.fetchUserEvents()
+                    try await viewModel.fetchUsers()
+                    if manager.userLocation == nil {
+                        manager.requestLocation()
+                    } else {
+                        
+                    }
+                }
+                
                 print("HELOOOOO")
             }
         }
@@ -171,7 +179,7 @@ struct UserPin: View {
                         .foregroundStyle(.white)
                 }
             } else {
-                Image(user.profileImageUrl)
+                KFImage(URL(string: user.profileImageUrl))
                     .resizable()
                     .scaledToFill()
                     .clipShape(Circle())
@@ -179,9 +187,15 @@ struct UserPin: View {
             }
             
             HStack(spacing: 4) {
-                Text(extractFirstName(from: user.fullName))
-                    .foregroundStyle(.black)
-                    .font(.footnote)
+                if user.isCurrentUser {
+                    Text("You")
+                        .foregroundStyle(.black)
+                        .font(.footnote)
+                } else {
+                    Text(extractFirstName(from: user.fullName))
+                        .foregroundStyle(.black)
+                        .font(.footnote)
+                }
                 
                 Text("2m")
                     .foregroundStyle(.gray)

@@ -10,8 +10,9 @@ import SwiftUI
 struct EventLocationSheet: View {
     
     @ObservedObject var locationSearchViewModel = LocationSearchViewModel.shared
-    @EnvironmentObject var viewModel: CreateEventViewModel
     @Environment(\.dismiss) var dismiss
+    
+    let onLocationSelected: (String) -> Void
     
     var body: some View {
         NavigationView {
@@ -56,7 +57,7 @@ struct EventLocationSheet: View {
                             LocationSearchResultCell(title: result.title, subtitle: result.subtitle)
                                 .onTapGesture {
                                     locationSearchViewModel.selectLoction(result)
-                                    viewModel.titleOfLocation = result.title
+                                    onLocationSelected(result.title)
                                     dismiss()
                                 }
                         }
@@ -67,6 +68,3 @@ struct EventLocationSheet: View {
     }
 }
 
-#Preview {
-    EventLocationSheet()
-}

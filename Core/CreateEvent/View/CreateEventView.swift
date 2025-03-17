@@ -84,8 +84,9 @@ struct CreateEventView: View {
             print(newValue)
         }
         .sheet(isPresented: $showLocationSheet) {
-            EventLocationSheet()
-                .environmentObject(viewModel)
+            EventLocationSheet() { selectedTitle in
+                viewModel.titleOfLocation = selectedTitle
+            }
         }
         
     }

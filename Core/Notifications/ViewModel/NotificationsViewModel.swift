@@ -13,6 +13,7 @@ import FirebaseAuth
 class NotificationsViewModel: ObservableObject {
     
     @Published var friendRequests: [Notification] = []
+    @Published var invitedEvents: [Event] = []
     
     func loadFriendRequests(for userId: String) {
         Task {
@@ -56,5 +57,21 @@ class NotificationsViewModel: ObservableObject {
         await MainActor.run {
             self.friendRequests.removeAll { $0.id == request.id }
         }
+    }
+    
+    @MainActor
+    func loadInvites() async throws {
+        let invites = try await NotificationService.fetchInvitations()
+        
+        var updatedEvents: [Event] = []
+        
+        for invite in invites {
+            var updatedInvite = invite
+            let eventUser = try await UserService.fetchUser(withUid: updatedInvite.ownerUid)
+            updatedInvite.user = eventUser
+            updatedEvents.append(updatedInvite)
+        }
+        
+        self.invitedEvents = updatedEvents
     }
 }

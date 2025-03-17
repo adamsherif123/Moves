@@ -11,7 +11,6 @@ import Kingfisher
 struct GoingCircles: View {
     let event: Event
     
-    @EnvironmentObject var viewModel: MapAnnotationsViewModel
     @EnvironmentObject var eventViewModel: EventViewModel
     
     var body: some View {
@@ -19,8 +18,16 @@ struct GoingCircles: View {
             VStack {
                 ScrollView {
                     LazyVStack {
-                        ForEach(viewModel.invitedUsers) { user in
-                            UserCell(user: user, isEvent: false, isRSVPd: true)
+                        ForEach(eventViewModel.invitedUsers) { user in
+                            HStack {
+                                UserCell(user: user, isEvent: false, isRSVPd: true)
+                                
+                                if eventViewModel.rsvpedUids.contains(user.id) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                        .imageScale(.medium)
+                                }
+                            }
                         }
                     }
                 }
@@ -28,11 +35,14 @@ struct GoingCircles: View {
             .padding()
             .navigationTitle("Invited:")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                Task { try await eventViewModel.fetchRsvpedUids() }
+            }
             
         } label: {
             HStack(spacing: 10) {
-                ForEach(0 ..< min(viewModel.invitedUsers.count, 5), id: \.self) { index in
-                    if viewModel.invitedUsers[index].profileImageUrl == "" {
+                ForEach(0 ..< min(eventViewModel.invitedUsers.count, 5), id: \.self) { index in
+                    if eventViewModel.invitedUsers[index].profileImageUrl == "" {
                         
                         ZStack {
                             Circle()
@@ -43,7 +53,7 @@ struct GoingCircles: View {
                         }
                         .offset(x: CGFloat(-15 * index))
                     } else {
-                        KFImage(URL(string: viewModel.invitedUsers[index].profileImageUrl))
+                        KFImage(URL(string: eventViewModel.invitedUsers[index].profileImageUrl))
                             .resizable()
                             .scaledToFill()
                             .clipShape(Circle())
@@ -52,16 +62,15 @@ struct GoingCircles: View {
                     }
                 }
                 
-                if viewModel.invitedUsers.count > 5 {
-                    Text("+ \(viewModel.invitedUsers.count - 5)")
+                if eventViewModel.invitedUsers.count > 5 {
+                    Text("+ \(eventViewModel.invitedUsers.count - 5)")
                         .font(.footnote)
                         .offset(x: CGFloat(-15 * 5))
                 }
             }
         }
         .onAppear {
-            Task { try await viewModel.fetchInvitedUsers(eventId: event.id) }
-            print("DEUBG: GoingCircles onAppear: \(viewModel.invitedUsers)")
+            print("DEUBG: GoingCircles onAppear: \(eventViewModel.invitedUsers)")
         }
     }
 }

@@ -52,12 +52,6 @@ struct UserCell: View {
             }
             
             Spacer()
-            
-            if isRSVPd {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                    .imageScale(.medium)
-            }
         }
     }
 }

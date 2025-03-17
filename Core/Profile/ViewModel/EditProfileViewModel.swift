@@ -17,14 +17,19 @@ class EditProfileViewModel: ObservableObject {
     }
     @Published var profileImage: Image?
     
+    @Published var email = ""
+    @Published var username = ""
     @Published var fullname = ""
-    @Published var bio = ""
+    @Published var profileImageUrl = ""
     
     private var uiImage: UIImage?
     
     init(user: User) {
         self.user = user
         self.fullname = user.fullName
+        self.profileImageUrl = user.profileImageUrl
+        self.username = user.username
+        self.email = user.email
     }
     
     
@@ -50,6 +55,14 @@ class EditProfileViewModel: ObservableObject {
         
         if !fullname.isEmpty && user.fullName != fullname {
             data["fullName"] = fullname
+        }
+        
+        if !email.isEmpty && user.email != email {
+            data["email"] = email
+        }
+        
+        if !username.isEmpty && user.username != username {
+            data["username"] = username
         }
         
         if !data.isEmpty {

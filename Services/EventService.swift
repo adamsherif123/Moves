@@ -65,5 +65,26 @@ struct EventService {
             return users
         }
     }
+    
+    static func fetchRSVPdUids(forEventId eventId: String) async throws -> [String] {
+        let db = Firestore.firestore()
+        
+        let rsvpedSnapshot = try await db
+            .collection("events")
+            .document(eventId)
+            .collection("rsvpedUsers")
+            .getDocuments()
+        
+        let rsvpedUids: [String] = rsvpedSnapshot.documents.map { $0.documentID }
+        
+        return rsvpedUids
+    }
+    
+    static func fetchEvent(forEventId eventId: String) async throws -> Event {
+        let eventSnapshot = try await Firestore.firestore().collection("events").document(eventId).getDocument()
+        
+        let event = try eventSnapshot.data(as: Event.self)
+        
+        return event
+    }
 }
-

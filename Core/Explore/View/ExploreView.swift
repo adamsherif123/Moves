@@ -32,7 +32,6 @@ struct ExploreView: View {
             }
             .navigationBarTitle("Explore")
         }
-        
     }
 }
 

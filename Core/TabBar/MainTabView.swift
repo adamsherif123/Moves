@@ -55,7 +55,6 @@ struct MainTabView: View {
                         Text("Profile")
                     }
                 }.tag(3)
-            
         }
         .tint(.purple)
         

@@ -39,7 +39,7 @@ class ProfileViewModel: ObservableObject {
             return
         }
         
-        let request = Notification(id: UUID().uuidString, senderId: currentUid, type: "friendRequest", timestamp: Timestamp(date: Date()), isAccepted: false)
+        let request = Notification(id: UUID().uuidString, senderId: currentUid, type: "friendRequest", timestamp: Timestamp(date: Date()))
         
         guard let encodedFriendRequest = try? Firestore.Encoder().encode(request) else {
             print("DEBUG: Failed to encode friend request.")

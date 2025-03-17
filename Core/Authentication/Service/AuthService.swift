@@ -61,6 +61,7 @@ class AuthService: ObservableObject {
                                  gender: gender)
             print("DEBUG: Did upload upload user data...")
             try await loadUserData()
+            LocationManager.shared.requestLocation()
         } catch {
             print("DEBUG: Failed to register user: \(error.localizedDescription)")
         }

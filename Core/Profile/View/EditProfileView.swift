@@ -7,6 +7,8 @@
 
 import SwiftUI
 import PhotosUI
+import Kingfisher
+
 
 struct EditProfileView: View {
     
@@ -16,7 +18,7 @@ struct EditProfileView: View {
     init(user: User) {
         self._viewModel = StateObject(wrappedValue: EditProfileViewModel(user: user))
     }
-    
+    @MainActor
     var body: some View {
         VStack {
             HStack {
@@ -53,10 +55,17 @@ struct EditProfileView: View {
                             .foregroundStyle(.white)
                             .background(.gray)
                             .clipShape(Circle())
+                    } else if viewModel.profileImageUrl != "" {
+                        KFImage(URL(string: viewModel.profileImageUrl))
+                            .resizable()
+                            .frame(width: 80, height: 80)
+                            .foregroundStyle(.white)
+                            .background(.gray)
+                            .clipShape(Circle())
                     } else {
                         Image(systemName: "peson")
                             .resizable()
-                            .frame(width: 80, height: 80) 
+                            .frame(width: 80, height: 80)
                             .foregroundStyle(.white)
                             .background(.gray)
                             .clipShape(Circle())
@@ -69,9 +78,16 @@ struct EditProfileView: View {
             }
             
             VStack {
-                EditProfileRowView(title: "Name", placeholder: "Enter your name", text: $viewModel.fullname)
-                EditProfileRowView(title: "Bio", placeholder: "Enter your bio", text: $viewModel.bio)
+                TextField("Enter your email", text: $viewModel.email)
+                    .modifier(TextFieldModifier())
+                
+                TextField("Enter your username", text: $viewModel.username)
+                    .modifier(TextFieldModifier())
+                
+                TextField("Enter your fullname", text: $viewModel.fullname)
+                    .modifier(TextFieldModifier())
             }
+            .padding(.top)
             
             Spacer()
         }

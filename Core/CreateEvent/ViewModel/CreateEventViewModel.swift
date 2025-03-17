@@ -39,9 +39,12 @@ class CreateEventViewModel: ObservableObject {
         
         let emoji = selectedEmoji?.title ?? ""
         
-        let friendIds = selectedFriends.map { $0.id }
+        var friendIds = selectedFriends.map { $0.id }
+        friendIds.append(currentUid)
         
-        await uploadEventData(id: NSUUID().uuidString,
+        let eventId = NSUUID().uuidString
+        
+        await uploadEventData(id: eventId,
                               emoji: emoji,
                               title: title,
                               description: description,
@@ -53,7 +56,17 @@ class CreateEventViewModel: ObservableObject {
                               createdAt: Timestamp(date: .now),
                               invitesUids: friendIds)
         
+        try? await Firestore.firestore()
+                .collection("events")
+                .document(eventId)
+                .collection("rsvpedUsers")
+                .document(currentUid)
+                .setData([:])
         
+        for friend in friendIds where friend != currentUid {
+            try await Firestore.firestore().collection("users")
+                .document(friend).collection("invitedEvents").document(eventId).setData([:])
+        }
     }
     
     func uploadEventData(id: String,

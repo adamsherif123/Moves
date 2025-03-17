@@ -15,16 +15,20 @@
 	<key>STORAGE_BUCKET</key>
 	<string>tiktok-f8ed4.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<true/>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:827981338661:ios:e95714e9c2f8fbdc1787cc</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>In order to have the best experience, please share your location.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>In order to have the best experience, please share your location.</string>
 </dict>
 </plist>

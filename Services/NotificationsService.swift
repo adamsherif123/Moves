@@ -7,6 +7,7 @@
 
 import Firebase
 import FirebaseFirestore
+import FirebaseAuth
 
 struct NotificationService {
     
@@ -25,6 +26,26 @@ struct NotificationService {
         }
         
         return requests
+    }
+    
+    static func fetchInvitations() async throws -> [Event] {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return [] }
+        
+        let snapshot = try await Firestore.firestore()
+            .collection("users")
+            .document(currentUid)
+            .collection("invitedEvents")
+            .getDocuments()
+        
+        let inviteIds = snapshot.documents.map { $0.documentID }
+        
+        var invitedEvents: [Event] = []
+        for inviteId in inviteIds {
+            let event = try await EventService.fetchEvent(forEventId: inviteId)
+            invitedEvents.append(event)
+        }
+        
+        return invitedEvents
     }
 }
 
