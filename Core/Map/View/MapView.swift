@@ -16,15 +16,16 @@ enum MapPinType {
 
 struct MapView: View {
     
-    let user: User
     
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 40.8075, longitude: -73.9626),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
     
-    @StateObject var viewModel = MapAnnotationsViewModel()
+    @StateObject var viewModel: MapAnnotationsViewModel
     @ObservedObject var manager = LocationManager.shared
+    
+    @StateObject var notificationsViewModel = NotificationsViewModel()
     
     @State private var selectedPin: MapPinItem?
     @State private var showTutorialSheet = false
@@ -55,6 +56,10 @@ struct MapView: View {
         }
         
         return userPins + eventPins
+    }
+    
+    init(user: User) {
+        self._viewModel = StateObject(wrappedValue: MapAnnotationsViewModel(user: user))
     }
     
     var body: some View {
@@ -115,22 +120,33 @@ struct MapView: View {
                         }
                         
                         NavigationLink {
-                            NotificationsView(user: user)
+                            NotificationsView(user: viewModel.user)
                                 .environmentObject(viewModel)
+                                .environmentObject(notificationsViewModel)
                         } label: {
                             ZStack(alignment: .topTrailing) {
                                 Image(systemName: "bell")
                                     .modifier(MapButtonModifier())
                                 
-                                Circle()
-                                    .frame(width: 15, height: 15)
-                                    .foregroundColor(.purple)
-                            }
                                 
+                                if notificationsViewModel.invitedEvents.count > 0 || notificationsViewModel.friendRequests.count > 0 {
+                                    ZStack {
+                                        Circle()
+                                            .frame(width: 15, height: 15)
+                                            .foregroundColor(.purple)
+                                        
+                                        Text("\(notificationsViewModel.invitedEvents.count + notificationsViewModel.friendRequests.count)")
+                                            .font(.caption)
+                                            .bold()
+                                            .foregroundStyle(.white)
+                                    }
+                                }
+                            }
                         }
                         
-                        Button {
-                            
+                        NavigationLink {
+                            ChatScrollView()
+                                .environmentObject(viewModel)
                         } label: {
                             Image(systemName: "ellipsis.message")
                                 .modifier(MapButtonModifier())
@@ -148,19 +164,24 @@ struct MapView: View {
             }
             .onAppear {
                 Task {
-                    try await viewModel.fetchUserEvents()
+//                    try await viewModel.fetchUserEvents()
+//                    viewModel.startListeningToInvitedEvents(forUserId: user.id)
                     try await viewModel.fetchUsers()
                     if manager.userLocation == nil {
                         manager.requestLocation()
                     } else {
-                        
+                        if let location = manager.userLocation {
+                            print("DEBUG: user.Location is \(location)")
+                        }
                     }
                 }
                 
                 print("HELOOOOO")
             }
+//            .onDisappear() {
+//                viewModel.stopListening()
+//            }
         }
-        
     }
 }
 

@@ -19,6 +19,7 @@ struct Event: Identifiable, Codable, Hashable {
     var ownerUid: String
     var createdAt: Timestamp?
     var invitesUids: [String] = []
+    var lastMessage: String?
+    var lastMessageTimestamp: Timestamp?
     var user: User?
 }
-

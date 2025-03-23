@@ -9,36 +9,35 @@ import Firebase
 import FirebaseFirestore
 
 struct EventService {
+    
+    private static var listener: ListenerRegistration?
+
     static func fetchEvents(forUserId userId: String) async throws -> [Event] {
         let db = Firestore.firestore()
-        
-        let ownerSnapshot = try await db.collection("events")
-            .whereField("ownerUid", isEqualTo: userId)
-            .getDocuments()
-        let ownerEvents = ownerSnapshot.documents.compactMap { try? $0.data(as: Event.self) }
         
         let invitedSnapshot = try await db.collection("events")
             .whereField("invitesUids", arrayContains: userId)
             .getDocuments()
-        let invitedEvents = invitedSnapshot.documents.compactMap { try? $0.data(as: Event.self) }
+        var invitedEvents = invitedSnapshot.documents.compactMap { try? $0.data(as: Event.self) }
         
-        var allEvents = ownerEvents
-        for event in invitedEvents {
-            if !allEvents.contains(where: { $0.id == event.id }) {
-                allEvents.append(event)
-            }
-        }
-        
-        for i in 0 ..< allEvents.count {
-            let event = allEvents[i]
+        for i in 0 ..< invitedEvents.count {
+            let event = invitedEvents[i]
             let ownerUid = event.ownerUid
             let eventUser = try await UserService.fetchUser(withUid: ownerUid)
-            allEvents[i].user = eventUser
+            invitedEvents[i].user = eventUser
         }
         
-        return allEvents
+        var userEvents: [Event] = []
+        
+        listener = db.collection("events")
+            .whereField("invitesUids", arrayContains: userId)
+            .addSnapshotListener { snapshot, error in
+                guard let snapshot = snapshot else { return }
+                userEvents = invitedEvents
+            }
+        
+        return userEvents
     }
-    
     
     static func fetchInvitedUsers(forEventId eventId: String) async throws -> [User] {
         let db = Firestore.firestore()

@@ -34,7 +34,7 @@ enum NotificationsType: Int, CaseIterable {
 struct NotificationsView: View {
     
     @State private var selectedFilter: NotificationsType = .invites
-    @StateObject var viewModel = NotificationsViewModel()
+    @EnvironmentObject var viewModel: NotificationsViewModel
     @State private var showInvite = false
     @EnvironmentObject var mapViewModel: MapAnnotationsViewModel
     let user: User

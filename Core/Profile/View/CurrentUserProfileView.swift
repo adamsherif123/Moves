@@ -9,15 +9,19 @@ import SwiftUI
 
 struct CurrentUserProfileView: View {
     
-    let user: User
     @State private var editProfile = false
-    @StateObject var viewModel = ProfileViewModel()
+    @StateObject var viewModel: ProfileViewModel
+    
+    init(user: User) {
+        self._viewModel = StateObject(wrappedValue: ProfileViewModel(user: user))
+    }
     
     var body: some View {
         NavigationStack {
             VStack {
-                ProfileHeader(user: user, viewModel: viewModel, isGuest: false)
-                ProfileCalendarScrollView(user: user)
+                ProfileHeader(user: viewModel.user, viewModel: viewModel, isGuest: false)
+                ProfileCalendarScrollView()
+                    .environmentObject(viewModel)
             }
             .padding(.vertical)
             .navigationBarTitle("Profile")
@@ -43,7 +47,7 @@ struct CurrentUserProfileView: View {
                 }
             }
             .fullScreenCover(isPresented: $editProfile) {
-                EditProfileView(user: user)
+                EditProfileView(user: viewModel.user)
             }
         }
     }

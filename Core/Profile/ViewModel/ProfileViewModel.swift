@@ -23,13 +23,54 @@ class ProfileViewModel: ObservableObject {
     @Published var didUserSendMeRequest: Bool?
     @Published var friendsCount: Int = 0
     
+    @Published var user: User
     @Published var events: [Event] = []
     
-    static let shared = ProfileViewModel()
+    private var eventListener: ListenerRegistration?
+
+    init(user: User) {
+        self.user = user
+        Task { await startListeningToInvitedEvents(forUserId: user.id) }
+    }
     
     @MainActor
-    func fetchUserEvents(uid: String) async throws {
-        self.events = try await EventService.fetchEvents(forUserId: uid)
+    func startListeningToInvitedEvents(forUserId userId: String) {
+        let db = Firestore.firestore()
+        
+        eventListener?.remove()
+        
+        eventListener = db.collection("events")
+            .whereField("invitesUids", arrayContains: userId)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let snapshot = snapshot else {
+                    print("DEBUG: Error listening to events: \(String(describing: error))")
+                    return
+                }
+                
+                Task {
+                    var updatedEvents: [Event] = []
+                    
+                    for doc in snapshot.documents {
+                        do {
+                            var event = try doc.data(as: Event.self)
+                            let ownerUid = event.ownerUid
+                            let eventUser = try await UserService.fetchUser(withUid: ownerUid)
+                            event.user = eventUser
+                            updatedEvents.append(event)
+                        } catch {
+                            print("DEBUG: Error decoding event: \(error)")
+                        }
+                    }
+                    
+                    self?.events = updatedEvents
+                    
+                }
+            }
+    }
+    
+    func stopListening() {
+        eventListener?.remove()
+        eventListener = nil
     }
     
     @MainActor
@@ -148,6 +189,11 @@ class ProfileViewModel: ObservableObject {
             }
     }
     
+    func removeFriendsCountListener() {
+        listener?.remove()
+        listener = nil
+    }
+    
     @MainActor
     func acceptFriendRequest(from user: User) async throws {
         guard let currentUid = Auth.auth().currentUser?.uid else { return }
@@ -164,10 +210,5 @@ class ProfileViewModel: ObservableObject {
         withAnimation {
             self.isFriend = true
         }
-    }
-    
-    func removeFriendsCountListener() {
-        listener?.remove()
-        listener = nil
     }
 }

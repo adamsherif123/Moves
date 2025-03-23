@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct ProfileCalendarScrollView: View {
-    @StateObject var viewModel = ProfileViewModel()
-    let user: User
+    
+    @EnvironmentObject var viewModel: ProfileViewModel
+    
     var body: some View {
         ScrollView {
             LazyVStack {
@@ -19,7 +20,7 @@ struct ProfileCalendarScrollView: View {
                 }
             }
             .onAppear {
-                Task { try await viewModel.fetchUserEvents(uid: user.id) }
+//                Task { viewModel.fetchUserEvents(uid: viewModel.user.id) }
                 
                 print("DEBUG: Events array is: \(viewModel.events)" )
             }
@@ -28,5 +29,5 @@ struct ProfileCalendarScrollView: View {
 }
 
 #Preview {
-    ProfileCalendarScrollView(user: DeveloperPreview.user)
+    ProfileCalendarScrollView()
 }

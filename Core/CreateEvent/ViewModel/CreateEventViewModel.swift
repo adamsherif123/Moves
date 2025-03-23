@@ -54,7 +54,9 @@ class CreateEventViewModel: ObservableObject {
                               longitude: LocationSearchViewModel.shared.selectedLongitude,
                               ownerUid: currentUid,
                               createdAt: Timestamp(date: .now),
-                              invitesUids: friendIds)
+                              invitesUids: friendIds,
+                              lastMessage: "New group chat. Say Hi!",
+                              lastMessageTimestamp: Timestamp(date: Date()))
         
         try? await Firestore.firestore()
                 .collection("events")
@@ -79,7 +81,9 @@ class CreateEventViewModel: ObservableObject {
                          longitude: Double?,
                          ownerUid: String,
                          createdAt: Timestamp,
-                         invitesUids: [String] = [] ) async {
+                         invitesUids: [String] = [],
+                         lastMessage: String,
+                         lastMessageTimestamp: Timestamp) async {
         
         let event = Event(id: id,
                           emoji: emoji,
@@ -91,7 +95,9 @@ class CreateEventViewModel: ObservableObject {
                           longitude: longitude,
                           ownerUid: ownerUid,
                           createdAt: createdAt,
-                          invitesUids: invitesUids)
+                          invitesUids: invitesUids,
+                          lastMessage: lastMessage,
+                          lastMessageTimestamp: lastMessageTimestamp)
         
         guard let encodedEvent = try? Firestore.Encoder().encode(event) else { return }
         
