@@ -11,12 +11,12 @@ struct ChatScrollView: View {
     
     @State private var showSheet = false
     @State private var showChatView = false
-    @EnvironmentObject var viewModel: MapAnnotationsViewModel
+    @EnvironmentObject var mapAnnotationsViewModel: MapAnnotationsViewModel
     
     var body: some View {
             ScrollView {
                 VStack {
-                    ForEach(viewModel.events) { event in
+                    ForEach(mapAnnotationsViewModel.events) { event in
                         NavigationLink {
                             InsideChatView(event: event)
                         } label: {

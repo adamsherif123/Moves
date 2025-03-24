@@ -18,7 +18,7 @@ class ChatViewModel: ObservableObject {
     
     init(event: Event) {
         self.event = event
-        Task { try await fetchMessages() }
+        Task { await fetchMessages() }
     }
     
     @MainActor
@@ -27,7 +27,7 @@ class ChatViewModel: ObservableObject {
         let groupId = event.id
         let messageId = NSUUID().uuidString
         
-        var messageTimestamp = Timestamp(date: Date())
+        let messageTimestamp = Timestamp(date: Date())
         
         let message = Message(id: messageId,
                               fromId: currentUid,
@@ -38,18 +38,47 @@ class ChatViewModel: ObservableObject {
         guard let encodedMessage = try? Firestore.Encoder().encode(message) else { return }
         
         try? await
-            Firestore.firestore().collection("events").document(groupId)
+        Firestore.firestore().collection("events").document(groupId)
             .collection("messages").document(messageId).setData(encodedMessage)
         
-        self.messageText = event.lastMessage ?? ""
-        messageTimestamp = event.lastMessageTimestamp ?? Timestamp(date: Date())
+        var messageData = [String: Any]()
+        
+        messageData["lastMessage"] = messageText
+        messageData["lastMessageTimestamp"] = messageTimestamp
+        
+        try await Firestore.firestore().collection("events").document(groupId)
+            .updateData(messageData)
         
         self.messageText = ""
     }
     
     @MainActor
-    func fetchMessages() async throws {
-        let messages = try await MessageService.fetchMessages(forEvent: event)
-        self.messages = messages
+    func fetchMessages() {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        let groupId = event.id
+        
+        let query = Firestore.firestore()
+            .collection("events")
+            .document(groupId)
+            .collection("messages")
+            .order(by: "timestamp", descending: false)
+        
+        query.addSnapshotListener { snapshot, _ in
+            guard let changes = snapshot?.documentChanges.filter({ $0.type == .added }) else { return }
+            var messages = changes.compactMap { try? $0.document.data(as: Message.self) }
+            
+            Task {
+                for i in 0 ..< messages.count {
+                    let message = messages[i]
+                    if message.fromId != currentUid {
+                        let fetchedUser = try await UserService.fetchUser(withUid: message.fromId)
+                        messages[i].user = fetchedUser
+                    }
+                }
+                
+                self.messages.append(contentsOf: messages)
+                
+            }
+        }
     }
 }

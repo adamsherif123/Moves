@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct InsideChatView: View {
-    
-    @StateObject var viewModel: ChatViewModel
     let event: Event
+    @StateObject var viewModel: ChatViewModel
     
     init(event: Event) {
         self._viewModel = StateObject(wrappedValue: ChatViewModel(event: event))
