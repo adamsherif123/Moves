@@ -11,7 +11,7 @@ import SwiftUI
 
 struct CreateCircleSheet: View {
     
-    @StateObject var viewModel = CirclesViewModel()
+    @EnvironmentObject var viewModel: CirclesViewModel
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -33,7 +33,6 @@ struct CreateCircleSheet: View {
                     AddCircleNameView(dismissSheet: {
                         dismiss()
                     })
-                        .environmentObject(viewModel)
                 } label: {
                     Text("Next")
                         .foregroundStyle(.black)
@@ -67,7 +66,6 @@ struct CreateCircleSheet: View {
                 }
                 .padding()
                 .onAppear {
-                    Task { try await viewModel.fetchFriends() }
                     print(
                         "Selected group members: \(viewModel.selectedFriends)")
                 }

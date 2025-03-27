@@ -41,6 +41,16 @@ class NotificationsViewModel: ObservableObject {
             .document(currentUid)
             .setData([:])
         
+        try await Firestore.firestore().collection("users")
+            .document(currentUid)
+            .collection("casualFriends")
+            .document(request.senderId)
+            .setData([:])
+        
+        try await Firestore.firestore().collection("users")
+            .document(request.senderId).collection("casualFriends")
+            .document(currentUid).setData([:])
+        
         try await deleteFriendRequest(request)
     }
     

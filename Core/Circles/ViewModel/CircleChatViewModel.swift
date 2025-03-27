@@ -1,44 +1,41 @@
 //
-//  ChatViewModel.swift
+//  CircleChatViewModel.swift
 //  Moves
 //
-//  Created by Adam Sherif on 3/22/25.
+//  Created by Adam Sherif on 3/24/25.
 //
 
-import Foundation
-import Firebase
 import FirebaseAuth
+import Firebase
 
-class ChatViewModel: ObservableObject {
-    
+class CircleChatViewModel: ObservableObject {
     @Published var messages: [Message] = []
     @Published var messageText = ""
+    let circle: Circles
     
-    let event: Event
-    
-    init(event: Event) {
-        self.event = event
+    init(circle: Circles) {
+        self.circle = circle
         Task { fetchMessages() }
     }
     
     @MainActor
     func sendMessage() async throws {
         guard let currentUid = Auth.auth().currentUser?.uid else { return }
-        let groupId = event.id
+        let circleId = circle.id
         let messageId = NSUUID().uuidString
         
         let messageTimestamp = Timestamp(date: Date())
         
         let message = Message(id: messageId,
                               fromId: currentUid,
-                              groupId: groupId,
+                              groupId: circleId,
                               messageText: messageText,
                               timestamp: messageTimestamp)
         
         guard let encodedMessage = try? Firestore.Encoder().encode(message) else { return }
         
         try? await
-        Firestore.firestore().collection("events").document(groupId)
+        Firestore.firestore().collection("circles").document(circleId)
             .collection("messages").document(messageId).setData(encodedMessage)
         
         var messageData = [String: Any]()
@@ -46,19 +43,20 @@ class ChatViewModel: ObservableObject {
         messageData["lastMessage"] = messageText
         messageData["lastMessageTimestamp"] = messageTimestamp
         
-        try await Firestore.firestore().collection("events").document(groupId)
+        self.messageText = ""
+        
+        try await Firestore.firestore().collection("circles").document(circleId)
             .updateData(messageData)
         
-        self.messageText = ""
     }
     
     func fetchMessages() {
         guard let currentUid = Auth.auth().currentUser?.uid else { return }
-        let groupId = event.id
+        let circleId = circle.id
         
         let query = Firestore.firestore()
-            .collection("events")
-            .document(groupId)
+            .collection("circles")
+            .document(circleId)
             .collection("messages")
             .order(by: "timestamp", descending: false)
         
@@ -74,7 +72,6 @@ class ChatViewModel: ObservableObject {
                         messages[i].user = fetchedUser
                     }
                 }
-                
                 DispatchQueue.main.async {
                     self.messages.append(contentsOf: messages)
                 }

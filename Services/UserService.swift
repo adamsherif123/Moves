@@ -7,6 +7,7 @@
 
 import Foundation
 import Firebase
+import FirebaseAuth
 
 struct UserService {
     
@@ -32,7 +33,6 @@ struct UserService {
             let friend = try await fetchUser(withUid: friendUid)
             friends.append(friend)
         }
-        
         return friends
     }
 }

@@ -21,28 +21,7 @@ struct ProfileHeader: View {
 
     var body: some View {
         HStack {
-            if user.profileImageUrl == "" {
-                ZStack {
-                    Circle()
-                        .frame(width: 80, height: 80)
-                        .foregroundColor(.gray)
-                    
-                    Image(systemName: "person")
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.white)
-                        
-                }
-                
-            } else {
-                
-                KFImage(URL(string: user.profileImageUrl))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
-                
-            }
+            UserProfileImage(user: user, width: 80, height: 80, imageScale: .large)
             
             VStack(alignment: .leading) {
                 Text(user.fullName)
@@ -53,7 +32,7 @@ struct ProfileHeader: View {
                     .font(.subheadline)
                 
                 HStack {
-                    Text("\(user.circlesCount)").bold() +
+                    Text("\(viewModel.circlesCount)").bold() +
                     Text(" Circles")
                     
                     Text("\(viewModel.friendsCount)").bold() +
@@ -91,6 +70,7 @@ struct ProfileHeader: View {
         .padding(.horizontal)
         .onAppear {
             viewModel.listenToFriendsCount(for: user)
+            viewModel.listenToCirclesCount(for: user)
             
             if isGuest {
                 Task { try await viewModel.checkIfFriendsOrIfRequested(for: user) }
@@ -98,6 +78,7 @@ struct ProfileHeader: View {
         }
         .onDisappear {
             viewModel.removeFriendsCountListener()
+            viewModel.removeCirclesCountListener()
         }
         .sheet(isPresented: $unfriendSheet) {
             VStack {

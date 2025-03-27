@@ -15,23 +15,7 @@ struct UserCell: View {
     
     var body: some View {
         HStack {
-            if user.profileImageUrl == "" {
-                ZStack {
-                    Circle()
-                        .frame(width: 40, height: 40)
-                        .foregroundStyle(Color(.systemGray4))
-                    
-                    Image(systemName: "person")
-                        .foregroundColor(.white)
-                }
-                
-            } else {
-                KFImage(URL(string: user.profileImageUrl))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-            }
+            UserProfileImage(user: user, width: 40, height: 40, imageScale: .medium)
             
             VStack(alignment: .leading) {
                 Text(user.fullName)

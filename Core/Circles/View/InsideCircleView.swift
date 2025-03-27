@@ -1,19 +1,19 @@
 //
-//  InsideChatView.swift
+//  InsideCircleView.swift
 //  Moves
 //
-//  Created by Adam Sherif on 3/22/25.
+//  Created by Adam Sherif on 3/24/25.
 //
 
 import SwiftUI
 
-struct InsideChatView: View {
-    let event: Event
-    @StateObject var viewModel: ChatViewModel
+struct InsideCircleView: View {
+    let circle: Circles
+    @StateObject var viewModel: CircleChatViewModel
     
-    init(event: Event) {
-        self._viewModel = StateObject(wrappedValue: ChatViewModel(event: event))
-        self.event = event
+    init(circle: Circles) {
+        self._viewModel = StateObject(wrappedValue: CircleChatViewModel(circle: circle))
+        self.circle = circle
     }
     
     var body: some View {
@@ -30,8 +30,10 @@ struct InsideChatView: View {
                 Task { try await viewModel.sendMessage() }
             }
         }
-        .navigationTitle("\(event.title)")
+        .navigationTitle("\(circle.name)")
         .navigationBarTitleDisplayMode(.inline)
         .padding(.vertical)
+        .toolbar(.hidden, for: .tabBar)
     }
 }
+

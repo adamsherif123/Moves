@@ -16,12 +16,14 @@ class ProfileViewModel: ObservableObject {
     private let db = Firestore.firestore()
     
     private var listener: ListenerRegistration?
+    private var circleListener: ListenerRegistration?
     private var eventListeners: [ListenerRegistration] = []
     
     @Published var isFriendFreindRequestSent: Bool?
     @Published var isFriend: Bool?
     @Published var didUserSendMeRequest: Bool?
-    @Published var friendsCount: Int = 0
+    @Published var friendsCount = 0
+    @Published var circlesCount = 0
     
     @Published var user: User
     @Published var events: [Event] = []
@@ -189,6 +191,23 @@ class ProfileViewModel: ObservableObject {
             }
     }
     
+    func listenToCirclesCount(for user: User) {
+        circleListener = db.collection("users")
+            .document(user.id)
+            .collection("circles")
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let docs = snapshot?.documents else { return }
+                DispatchQueue.main.async {
+                    self?.circlesCount = docs.count
+                }
+            }
+    }
+    
+    func removeCirclesCountListener() {
+        circleListener?.remove()
+        circleListener = nil
+    }
+    
     func removeFriendsCountListener() {
         listener?.remove()
         listener = nil
@@ -203,6 +222,16 @@ class ProfileViewModel: ObservableObject {
         
         try? await Firestore.firestore().collection("users").document(user.id)
             .collection("friends").document(currentUid).setData([:])
+        
+        try await Firestore.firestore().collection("users")
+            .document(currentUid)
+            .collection("casualFriends")
+            .document(user.id)
+            .setData([:])
+        
+        try await Firestore.firestore().collection("users")
+            .document(user.id).collection("casualFriends")
+            .document(currentUid).setData([:])
         
         try? await Firestore.firestore().collection("users").document(currentUid)
             .collection("notifications").document(user.id).delete()

@@ -15,13 +15,20 @@ class CirclesViewModel: ObservableObject {
     @Published var selectedFriends: [User] = []
     @Published var circleName = ""
     
+    @Published var userCircles: [Circles] = []
+    
     @Published var selectedImage: PhotosPickerItem? {
         didSet { Task { await loadImage(fromItem: selectedImage) } }
     }
     @Published var cirleImage: Image?
+    @Published var messageText = ""
+    @Published var circleMessages: [Message] = []
     
     private var uiImage: UIImage?
     private var imageUrl: String?
+    
+    private var Listener: [ListenerRegistration] = []
+    
     
     @MainActor
     func fetchFriends() async throws {
@@ -47,6 +54,11 @@ class CirclesViewModel: ObservableObject {
         
         await uploadCircleData(id: circleId, name: circleName, userIds: friendsIds, lastMessage: "New Circle. Say Hi!", lastMessageTimestamp: Timestamp(date: .now), imageUrl: imageUrl)
         
+        for friend in selectedFriends {
+            try await
+            Firestore.firestore().collection("users").document(friend.id)
+                .collection("circles").document(circleId).setData([:])
+        }
         
     }
     
@@ -76,5 +88,11 @@ class CirclesViewModel: ObservableObject {
         guard let uiImage = UIImage(data: data) else { return }
         self.uiImage = uiImage
         self.cirleImage = Image(uiImage: uiImage)
+    }
+    
+    @MainActor
+    func fetchUserCircles() async throws {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        self.userCircles = try await CirlcesService.fetchCircles(forUserId: currentUid)
     }
 }

@@ -86,6 +86,7 @@ struct MapView: View {
                         }
                     }
                 }
+                .labelsHidden()
                 .edgesIgnoringSafeArea(.top)
                 .sheet(item: $selectedPin) { pin in
                     switch pin.pinType {
@@ -152,8 +153,8 @@ struct MapView: View {
                                 .modifier(MapButtonModifier())
                         }
                         
-                        Button {
-                            
+                        NavigationLink {
+                            PrivacyView(user: viewModel.user)
                         } label: {
                             Image(systemName: "lock")
                                 .modifier(MapButtonModifier())
@@ -190,22 +191,7 @@ struct UserPin: View {
     
     var body: some View {
         VStack(spacing: 3) {
-            if user.profileImageUrl == "" {
-                ZStack {
-                    Circle()
-                        .frame(width: 35, height: 35)
-                        .foregroundStyle(Color(.systemGray3))
-                    
-                    Image(systemName: "person")
-                        .foregroundStyle(.white)
-                }
-            } else {
-                KFImage(URL(string: user.profileImageUrl))
-                    .resizable()
-                    .scaledToFill()
-                    .clipShape(Circle())
-                    .frame(width: 35, height: 35)
-            }
+            UserProfileImage(user: user, width: 30, height: 30, imageScale: .medium)
             
             HStack(spacing: 4) {
                 if user.isCurrentUser {

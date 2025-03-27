@@ -22,6 +22,7 @@ struct User: Identifiable, Codable, Hashable {
     var longitude: Double?
     var dob: String?
     var gender: String?
+    var privacyType: String?
     
     var isCurrentUser: Bool {
         guard let currentUid = Auth.auth().currentUser?.uid else { return false }

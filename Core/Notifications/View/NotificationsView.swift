@@ -91,23 +91,7 @@ extension NotificationsView {
                 ForEach(viewModel.friendRequests) { request in
                     if let user = request.user {
                         HStack {
-                            if user.profileImageUrl == "" {
-                                ZStack {
-                                    Circle()
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "person")
-                                        .foregroundStyle(.white)
-                                        .imageScale(.small)
-                                    
-                                }
-                            } else {
-                                KFImage(URL(string: user.profileImageUrl))
-                                    .resizable()
-                                    .scaledToFill()
-                                    .clipShape(Circle())
-                                    .frame(width: 40, height: 40)
-                            }
+                            UserProfileImage(user: user, width: 40, height: 40, imageScale: .small)
                             
                             VStack(alignment: .leading) {
                                 

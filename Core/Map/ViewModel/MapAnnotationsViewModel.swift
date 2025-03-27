@@ -82,12 +82,3 @@ class MapAnnotationsViewModel: ObservableObject {
         self.users = friends
     }
 }
-
-
-
-
-
-
-
-
-
